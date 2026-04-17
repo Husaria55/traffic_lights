@@ -1,4 +1,4 @@
-import { Command, OutputData, StepStatus } from "./models/types";       
+import type { Command, OutputData, StepStatus } from "./models/types";       
 
 export class TrafficController {
     private stepStatuses: StepStatus[] = [];
