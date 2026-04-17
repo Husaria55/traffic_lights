@@ -15,8 +15,9 @@ export class TrafficController {
     private currentPhase: TrafficPhase;
     private phaseTimer: number;
 
-    private readonly greenDuration: number = 5;
-    private readonly yellowDuration: number = 1;
+    private readonly MIN_GREEN_DURATION: number = 3;
+    private readonly MAX_GREEN_DURATION: number = 10;
+    private readonly YELLOW_DURATION: number = 1;
 
     constructor() {
         this.currentPhase = "NS_GREEN";
@@ -56,7 +57,7 @@ export class TrafficController {
             if (command.type === "addVehicle") {
                 this.handleAddVehicle(command);
             } else if (command.type === "step") {
-                result.stepStatuses.push(stepStatus);
+                result.stepStatuses.push(this.handleStep());
             }
         }
 
@@ -64,11 +65,84 @@ export class TrafficController {
     }
 
     private handleAddVehicle(command: Extract<Command, { type: "addVehicle" }>): void {
-      // TODO: Implementacja dodawania pojazdu do kolejki
+        const newVehicle: Vehicle = {
+            id: command.vehicleId,
+            startRoad: command.startRoad,
+            endRoad: command.endRoad,
+            waitTime: 0
+        };
+
+        this.state.queues[command.startRoad].push(newVehicle);
     }
 
     private handleStep(): StepStatus {
-      // TODO: Implementacja logiki przejścia symulacji o jeden krok
-      return { leftVehicles: [] };
+      const leftVehicles: string[] = [];
+
+      if (this.currentPhase === "NS_GREEN") {
+        if (this.state.queues.north.length > 0) {
+          leftVehicles.push(this.state.queues.north.shift()!.id);
+        } 
+        if (this.state.queues.south.length > 0) {
+          leftVehicles.push(this.state.queues.south.shift()!.id);
+        }
+      } else if (this.currentPhase === "EW_GREEN") {
+        if (this.state.queues.east.length > 0) {
+          leftVehicles.push(this.state.queues.east.shift()!.id);
+        } 
+        if (this.state.queues.west.length > 0) {
+          leftVehicles.push(this.state.queues.west.shift()!.id);
+        }
+      }
+
+      for (const road of Object.keys(this.state.queues) as Road[]) {
+        for (const vehicle of this.state.queues[road]) {
+          vehicle.waitTime++;
+        }
+      }
+
+      this.phaseTimer++;
+      this.updateTrafficLights();
+
+      return { leftVehicles };
     }
+
+    private updateTrafficLights(): void {
+        const queues = this.state.queues;
+
+        const nsWaiting = queues.north.length + queues.south.length;
+        const ewWaiting = queues.east.length + queues.west.length;
+
+        switch (this.currentPhase) {
+            case "NS_GREEN":
+                if ((this.phaseTimer >= this.MIN_GREEN_DURATION && ewWaiting > nsWaiting) || this.phaseTimer >= this.MAX_GREEN_DURATION) {
+                  this.transitionTo("NS_YELLOW");
+                }
+                break;
+
+            case "NS_YELLOW":
+                if (this.phaseTimer >= this.YELLOW_DURATION) {
+                  this.transitionTo("EW_GREEN");
+                }
+                break;
+            
+            case "EW_GREEN":
+                if ((this.phaseTimer >= this.MIN_GREEN_DURATION && nsWaiting > ewWaiting) || this.phaseTimer >= this.MAX_GREEN_DURATION) {
+                  this.transitionTo("EW_YELLOW");
+                }
+                break;
+            
+            case "EW_YELLOW":
+                if (this.phaseTimer >= this.YELLOW_DURATION) {
+                  this.transitionTo("NS_GREEN");
+                }
+                break;
+        }
+    }
+
+    private transitionTo(newPhase: TrafficPhase): void {
+        this.currentPhase = newPhase;
+        this.phaseTimer = 0;
+        this.state.lights = this.getLightsForPhase(newPhase);
+    }
+
 }
