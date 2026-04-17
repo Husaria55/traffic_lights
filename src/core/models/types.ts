@@ -1,4 +1,4 @@
-export typqe Road = "north" | "south" | "east" | "west";
+export type Road = "north" | "south" | "east" | "west";
 
 export interface AddVehicleCommand {
     type: "addVehicle";
