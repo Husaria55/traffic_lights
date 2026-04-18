@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TrafficController } from './core/TrafficController';
 import type { Road, LightColor } from './core/models/types';
 
@@ -23,15 +23,15 @@ export default function App() {
   const [trafficState, setTrafficState] = useState(() => controller.getState());
   const [autoPlay, setAutoPlay] = useState(false);
   const [tickCount, setTickCount] = useState(0); 
-  const syncState = () => {
+  const syncState = useCallback(() => {
     setTrafficState({ ...controller.getState() });
-  };
+  }, [controller]);
 
-  const handleStep = () => {
+  const handleStep = useCallback(() => {
     controller.processCommand([{ type: 'step' }]);
     setTickCount(prev => prev + 1);
     syncState();
-  };
+  }, [controller, syncState]);
 
   const handleAddVehicle = (startRoad: Road) => {
     const endRoad = getRandomEndRoad(startRoad);
@@ -54,7 +54,7 @@ export default function App() {
       }, 600);
     }
     return () => clearInterval(interval);
-  }, [autoPlay]);
+  }, [autoPlay, handleStep]);
 
   return (
     <div className="min-h-screen bg-black text-green-500 font-mono flex flex-col items-center py-8 px-4 selection:bg-green-500 selection:text-black">
