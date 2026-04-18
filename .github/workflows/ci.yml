@@ -1,0 +1,39 @@
+name: Traffic Lights CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repo Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm' 
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Linting
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: CLI Simulation Test
+        run: |
+          echo '{"commands": [{"type": "addVehicle", "vehicleId": "TEST_V1", "startRoad": "north", "endRoad": "south"}, {"type": "step"}]}' > ci_test_input.json
+          npm run simulate ci_test_input.json ci_test_output.json
+          
+          echo "Wynik symulacji:"
+          cat ci_test_output.json
