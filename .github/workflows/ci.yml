@@ -1,4 +1,4 @@
-name: Traffic Lights CI
+name: Traffic Lights CI/CD
 
 on:
   push:
@@ -6,34 +6,59 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-and-test:
     name: Build & Verify
     runs-on: ubuntu-latest
 
     steps:
-      - name: Repo Checkout
+      - name: Repository Checkout
         uses: actions/checkout@v4
 
       - name: Node.js Setup
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm' 
+          cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Dependencies Installation
         run: npm ci
 
-      - name: Linting
+      - name: Linter
         run: npm run lint
+
+      - name: CLI test
+        run: |
+          echo '{"commands": [{"type": "addVehicle", "vehicleId": "TEST_V1", "startRoad": "north", "endRoad": "south"}, {"type": "step"}]}' > ci_test_input.json
+          npm run simulate ci_test_input.json ci_test_output.json
+          echo "Wynik CLI:"
+          cat ci_test_output.json
 
       - name: Build
         run: npm run build
 
-      - name: CLI Simulation Test
-        run: |
-          echo '{"commands": [{"type": "addVehicle", "vehicleId": "TEST_V1", "startRoad": "north", "endRoad": "south"}, {"type": "step"}]}' > ci_test_input.json
-          npm run simulate ci_test_input.json ci_test_output.json
-          
-          echo "Wynik symulacji:"
-          cat ci_test_output.json
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist' 
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-and-test 
+    runs-on: ubuntu-latest
+    
+    if: github.event_name == 'push'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
