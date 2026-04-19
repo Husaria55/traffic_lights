@@ -34,10 +34,10 @@ Conflicting directions can never both be green - it's enforced at the type level
 Adaptive timing:
 
 MIN_GREEN_DURATION = 3 - minimum ticks before any switch (prevents flickering)
-After minimum: each tick checks if cross-traffic is waiting
+After minimum: each tick checks if cross-traffic is greater than current direction load
 
-No cross-traffic -> current direction stays green
-Cross-traffic waiting -> transition to yellow, then switch
+Smaller cross-traffic -> current direction stays green
+Greater cross-traffic  -> transition to yellow, then switch
 
 
 MAX_GREEN_DURATION = 10 - hard cap to prevent starvation on side roads
