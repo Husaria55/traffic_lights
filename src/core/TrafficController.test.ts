@@ -56,6 +56,17 @@ describe('TrafficController', () => {
 
   it('should change phase to yellow after reaching maximum green time (safety against starvation)', () => {
     controller.processCommand([
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },      
+      { type: 'addVehicle', vehicleId: 'V_N', startRoad: 'north', endRoad: 'south' },
+      { type: 'addVehicle', vehicleId: 'V_S', startRoad: 'south', endRoad: 'north' },
       { type: 'addVehicle', vehicleId: 'V_E', startRoad: 'east', endRoad: 'west' }
     ]);
 
