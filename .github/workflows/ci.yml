@@ -32,6 +32,9 @@ jobs:
       - name: Linter
         run: npm run lint
 
+      - name: Unit tests
+        run: npm run test
+
       - name: CLI test
         run: |
           echo '{"commands": [{"type": "addVehicle", "vehicleId": "TEST_V1", "startRoad": "north", "endRoad": "south"}, {"type": "step"}]}' > ci_test_input.json
